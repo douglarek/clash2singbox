@@ -125,6 +125,21 @@ type Selector struct {
 	Default   string   `json:"default,omitempty"`
 }
 
+type Direct struct {
+	Type string `json:"type"`
+	Tag  string `json:"tag"`
+}
+
+type Block struct {
+	Type string `json:"type"`
+	Tag  string `json:"tag"`
+}
+
+type DNS struct {
+	Type string `json:"type"`
+	Tag  string `json:"tag"`
+}
+
 func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) ([]interface{}, []string) {
 	var ms []interface{}
 	var allItems []string
@@ -237,19 +252,19 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) (
 	m.(*Selector).Outbounds = items
 	ms = append(ms, m)
 
-	m = &Selector{
+	m = &Direct{
 		Type: "direct",
 		Tag:  "direct",
 	}
 	ms = append(ms, m)
 
-	m = &Selector{
+	m = &Block{
 		Type: "block",
 		Tag:  "block",
 	}
 	ms = append(ms, m)
 
-	m = &Selector{
+	m = &DNS{
 		Type: "dns",
 		Tag:  "dns-out",
 	}
