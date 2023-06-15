@@ -6,7 +6,7 @@
   "dns": {
     "servers": [
       {
-        "tag": "google",
+        "tag": "proxy",
         "address": "https://doh.pub/dns-query",
         "address_resolver": "local"
       },
