@@ -77,22 +77,24 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	return m
 }
 
-func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) []map[string]interface{} {
+func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) ([]map[string]interface{}, []string) {
 	var ms []map[string]interface{}
 	var allItems []string
 	var allRegions []string
+	var allHosts []string
 	for k, v := range gp {
 		var item []string
 		for i, p := range v {
 			m := make(map[string]interface{})
 			m["tag"] = fmt.Sprintf("%s-%02d", k, i+1)
-			if p["type"] == "ss" {
+			port, err := strconv.Atoi(p["port"])
+			if err != nil {
+				panic(err)
+			}
+			switch p["type"] {
+			case "ss":
 				m["type"] = "shadowsocks"
 				m["server"] = p["server"]
-				port, err := strconv.Atoi(p["port"])
-				if err != nil {
-					panic(err)
-				}
 				m["server_port"] = port
 				m["method"] = p["cipher"]
 				if hiddenPassword {
@@ -100,10 +102,24 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) [
 				} else {
 					m["password"] = p["password"]
 				}
+			case "vmess":
+				m["type"] = "vmess"
+				m["server"] = p["server"]
+				m["server_port"] = port
+				m["uuid"] = p["uuid"]
+				aid, err := strconv.Atoi(p["alterId"])
+				if err != nil {
+					panic(err)
+				}
+				m["alter_id"] = aid
+				m["security"] = p["cipher"]
+			default:
+				panic(fmt.Errorf("unknown type: %s", p["type"]))
 			}
 			ms = append(ms, m)
 			item = append(item, m["tag"].(string))
 			allItems = append(allItems, m["tag"].(string))
+			allHosts = append(allHosts, p["server"])
 		}
 
 		allRegions = append(allRegions, k)
@@ -173,20 +189,39 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) [
 	m["tag"] = "dns-out"
 	ms = append(ms, m)
 
-	return ms
+	return ms, allHosts
 }
 
 //go:embed tmpl.json
 var config []byte
 
-func generateConfig(outbounds []map[string]interface{}, configPath string) error {
-	var m map[string]interface{}
-	if err := json.Unmarshal(config, &m); err != nil {
+type Config struct {
+	Log json.RawMessage `json:"log"`
+	DNS struct {
+		Servers  json.RawMessage          `json:"servers"`
+		Rules    []map[string]interface{} `json:"rules"`
+		Strategy string                   `json:"strategy"`
+	} `json:"dns"`
+	Outbounds    interface{}     `json:"outbounds"`
+	Inbounds     json.RawMessage `json:"inbounds"`
+	Route        json.RawMessage `json:"route"`
+	Experimental json.RawMessage `json:"experimental"`
+}
+
+func generateConfig(outbounds []map[string]interface{}, allHosts []string, configPath string) error {
+	var cfg Config
+	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
 	}
-	m["outbounds"] = outbounds
+	m := make(map[string]interface{})
+	m["domain"] = allHosts
+	m["geosite"] = "cn"
+	m["server"] = "local"
+	cfg.DNS.Rules = append(cfg.DNS.Rules, m)
 
-	b, err := json.Marshal(m)
+	cfg.Outbounds = outbounds
+
+	b, err := json.Marshal(cfg)
 	if err != nil {
 		return err
 	}
@@ -238,7 +273,8 @@ func main() {
 		panic(err)
 	}
 
-	if err = generateConfig(generateOutbounds(groupProxies(ps), *hiddenPassword), *outFile); err != nil {
+	ob, addrs := generateOutbounds(groupProxies(ps), *hiddenPassword)
+	if err = generateConfig(ob, addrs, *outFile); err != nil {
 		panic(err)
 	}
 }

@@ -27,11 +27,6 @@
         "disable_cache": true
       },
       {
-        "domain_suffix": ".bigmeyear.org",
-        "geosite": "cn",
-        "server": "local"
-      },
-      {
         "domain": [
           "clash.razord.top",
           "yacd.haishan.me",
