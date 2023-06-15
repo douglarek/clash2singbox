@@ -173,10 +173,9 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) (
 	m["default"] = "select"
 	ms = append(ms, m)
 
-	// ms
 	m = make(map[string]interface{})
 	m["type"] = "selector"
-	m["tag"] = "microsoft"
+	m["tag"] = "spotify"
 	m["outbounds"] = append([]string{"direct", "select"}, allItems...)
 	m["default"] = "direct"
 	ms = append(ms, m)

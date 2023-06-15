@@ -63,7 +63,9 @@
         "com.baidu.BaiduMap",
         "com.douban.frodo",
         "com.alicloud.databox",
-        "com.xiaomi.smarthome"
+        "com.xiaomi.smarthome",
+	"org.kde.kdeconnect_tp",
+	"jp.co.canon.bsd.ad.pixmaprint"
       ],
       "sniff": true
     }
@@ -87,8 +89,8 @@
         "outbound": "select"
       },
       {
-        "geosite": "microsoft",
-        "outbound": "microsoft"
+        "geosite": "spotify",
+        "outbound": "spotify"
       },
       {
         "geosite": "netflix",
