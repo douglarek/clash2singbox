@@ -27,7 +27,10 @@ var (
 	outFile        = flag.String("c", "config.json", "generated config file path")
 )
 
-const agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+const (
+	agent   = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+	testURL = "https://www.gstatic.com/generate_204"
+)
 
 func parseSubscribeProxies(url string) ([]map[string]string, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -87,117 +90,170 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	return m
 }
 
-func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) ([]map[string]interface{}, []string) {
-	var ms []map[string]interface{}
+type Shadowsocks struct {
+	Type       string `json:"type"`
+	Tag        string `json:"tag"`
+	Server     string `json:"server"`
+	ServerPort int    `json:"server_port"`
+	Method     string `json:"method"`
+	Password   string `json:"password"`
+}
+
+type Vmess struct {
+	Type       string `json:"type"`
+	Tag        string `json:"tag"`
+	Server     string `json:"server"`
+	ServerPort int    `json:"server_port"`
+	UUID       string `json:"uuid"`
+	AlterID    int    `json:"alter_id"`
+	Security   string `json:"security"`
+}
+
+type URLTest struct {
+	Type      string   `json:"type"`
+	Tag       string   `json:"tag"`
+	URL       string   `json:"url"`
+	Interval  string   `json:"interval"`
+	Tolerance int      `json:"tolerance"`
+	Outbounds []string `json:"outbounds"`
+}
+
+type Selector struct {
+	Type      string   `json:"type"`
+	Tag       string   `json:"tag"`
+	Outbounds []string `json:"outbounds,omitempty"`
+	Default   string   `json:"default,omitempty"`
+}
+
+func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) ([]interface{}, []string) {
+	var ms []interface{}
 	var allItems []string
 	var allRegions []string
 	var allHosts []string
 	for k, v := range gp {
 		var item []string
 		for i, p := range v {
-			m := make(map[string]interface{})
-			m["tag"] = fmt.Sprintf("%s-%02d", k, i+1)
+			var m interface{}
+			tag := fmt.Sprintf("%s-%02d", k, i+1)
 			port, err := strconv.Atoi(p["port"])
 			if err != nil {
 				panic(err)
 			}
 			switch p["type"] {
 			case "ss":
-				m["type"] = "shadowsocks"
-				m["server"] = p["server"]
-				m["server_port"] = port
-				m["method"] = p["cipher"]
+				m = &Shadowsocks{
+					Type:       "shadowsocks",
+					Tag:        tag,
+					Server:     p["server"],
+					ServerPort: port,
+					Method:     p["cipher"],
+				}
 				if hiddenPassword {
-					m["password"] = "******"
+					m.(*Shadowsocks).Password = "******"
 				} else {
-					m["password"] = p["password"]
+					m.(*Shadowsocks).Password = p["password"]
 				}
 			case "vmess":
-				m["type"] = "vmess"
-				m["server"] = p["server"]
-				m["server_port"] = port
-				m["uuid"] = p["uuid"]
+				m = &Vmess{
+					Type:       "vmess",
+					Tag:        tag,
+					Server:     p["server"],
+					ServerPort: port,
+				}
+				if hiddenPassword {
+					m.(*Vmess).UUID = "******"
+				} else {
+					m.(*Vmess).UUID = p["uuid"]
+				}
 				aid, err := strconv.Atoi(p["alterId"])
 				if err != nil {
 					panic(err)
 				}
-				m["alter_id"] = aid
-				m["security"] = p["cipher"]
+				m.(*Vmess).AlterID = aid
+				m.(*Vmess).Security = p["cipher"]
 			default:
 				panic(fmt.Errorf("unknown type: %s", p["type"]))
 			}
 			ms = append(ms, m)
-			item = append(item, m["tag"].(string))
-			allItems = append(allItems, m["tag"].(string))
+			item = append(item, tag)
+			allItems = append(allItems, tag)
 			allHosts = append(allHosts, p["server"])
 		}
 
 		allRegions = append(allRegions, k)
 
 		// regions
-		m := make(map[string]interface{})
-		m["type"] = "urltest"
-		m["tag"] = k
-		m["url"] = "https://www.gstatic.com/generate_204"
-		m["interval"] = "1m"
-		m["tolerance"] = 50
-		m["outbounds"] = item
+		m := &URLTest{
+			Type:      "urltest",
+			Tag:       k,
+			URL:       testURL,
+			Interval:  "1m",
+			Tolerance: 50,
+			Outbounds: item,
+		}
 		ms = append(ms, m)
 	}
 
 	// auto
-	m := make(map[string]interface{})
-	m["type"] = "urltest"
-	m["tag"] = "auto"
-	m["url"] = "https://www.gstatic.com/generate_204"
-	m["interval"] = "1m"
-	m["tolerance"] = 50
-	m["outbounds"] = allItems
+	var m interface{} = &URLTest{
+		Type:      "urltest",
+		Tag:       "auto",
+		URL:       testURL,
+		Interval:  "1m",
+		Tolerance: 50,
+		Outbounds: allItems,
+	}
 	ms = append(ms, m)
 
 	// select
-	m = make(map[string]interface{})
-	m["type"] = "selector"
-	m["tag"] = "select"
+	m = &Selector{
+		Type:    "selector",
+		Tag:     "select",
+		Default: "auto",
+	}
 	items := []string{"auto"}
 	items = append(items, allRegions...)
 	items = append(items, allItems...)
-	m["outbounds"] = items
-	m["default"] = "auto"
+	m.(*Selector).Outbounds = items
 	ms = append(ms, m)
 
-	m = make(map[string]interface{})
-	m["type"] = "selector"
-	m["tag"] = "netflix"
-	m["outbounds"] = append([]string{"select"}, allItems...)
-	m["default"] = "select"
+	m = &Selector{
+		Type:    "selector",
+		Tag:     "netflix",
+		Default: "select",
+	}
+	items = []string{"select"}
+	items = append(items, allItems...)
+	m.(*Selector).Outbounds = items
 	ms = append(ms, m)
 
-	m = make(map[string]interface{})
-	m["type"] = "selector"
-	m["tag"] = "spotify"
-	m["outbounds"] = append([]string{"direct", "select"}, allItems...)
-	m["default"] = "direct"
+	m = &Selector{
+		Type:    "selector",
+		Tag:     "spotify",
+		Default: "direct",
+	}
+	items = []string{"direct", "select"}
+	items = append(items, allItems...)
+	m.(*Selector).Outbounds = items
 	ms = append(ms, m)
 
-	// direct
-	m = make(map[string]interface{})
-	m["type"] = "direct"
-	m["tag"] = "direct"
+	m = &Selector{
+		Type: "direct",
+		Tag:  "direct",
+	}
 	ms = append(ms, m)
 
-	// block
-	m = make(map[string]interface{})
-	m["type"] = "block"
-	m["tag"] = "block"
+	m = &Selector{
+		Type: "block",
+		Tag:  "block",
+	}
 	ms = append(ms, m)
 
-	// dns
-	m = make(map[string]interface{})
-	m["type"] = "dns"
-	m["tag"] = "dns-out"
+	m = &Selector{
+		Type: "dns",
+		Tag:  "dns-out",
+	}
 	ms = append(ms, m)
-
 	return ms, allHosts
 }
 
@@ -217,7 +273,7 @@ type Config struct {
 	Experimental json.RawMessage `json:"experimental"`
 }
 
-func generateConfig(outbounds []map[string]interface{}, allHosts []string, configPath string) error {
+func generateConfig(outbounds []interface{}, allHosts []string, configPath string) error {
 	var cfg Config
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
