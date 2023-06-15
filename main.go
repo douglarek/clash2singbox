@@ -27,8 +27,18 @@ var (
 	outFile        = flag.String("c", "config.json", "generated config file path")
 )
 
+const agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+
 func parseSubscribeProxies(url string) ([]map[string]string, error) {
-	resp, err := http.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Close = true
+	req.Header.Set("User-Agent", agent)
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +223,8 @@ func generateConfig(outbounds []map[string]interface{}, allHosts []string, confi
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
 	}
+
+	// subscribe hosts to dns direct
 	m := make(map[string]interface{})
 	m["domain"] = allHosts
 	m["geosite"] = "cn"
