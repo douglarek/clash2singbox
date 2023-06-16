@@ -234,21 +234,19 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) *
 		Default:   "auto",
 	})
 
-	var customGeositeItems []string
-
 	// custom geosite selectors
+	var customGeositeItems []string
 	ms = append(ms, Selector{
 		Type:      "selector",
 		Tag:       "spotify",
-		Outbounds: append([]string{"direct", "selelct"}, allItems...),
+		Outbounds: append([]string{"direct", "select"}, allItems...),
 		Default:   "direct",
 	})
 	customGeositeItems = append(customGeositeItems, "spotify")
-
 	ms = append(ms, Selector{
 		Type:      "selector",
 		Tag:       "netflix",
-		Outbounds: append([]string{"selelct"}, allItems...),
+		Outbounds: append([]string{"select"}, allItems...),
 		Default:   "select",
 	})
 	customGeositeItems = append(customGeositeItems, "netflix")
