@@ -121,8 +121,8 @@ type URLTest struct {
 type Selector struct {
 	Type      string   `json:"type"`
 	Tag       string   `json:"tag"`
-	Outbounds []string `json:"outbounds,omitempty"`
-	Default   string   `json:"default,omitempty"`
+	Outbounds []string `json:"outbounds"`
+	Default   string   `json:"default"`
 }
 
 type Direct struct {
@@ -140,7 +140,13 @@ type DNS struct {
 	Tag  string `json:"tag"`
 }
 
-func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) ([]interface{}, []string) {
+type CustomOutbounds struct {
+	Outbounds    []interface{}
+	DNSHosts     []string
+	GeositeItems []string
+}
+
+func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) *CustomOutbounds {
 	var ms []interface{}
 	var allItems []string
 	var allRegions []string
@@ -198,110 +204,136 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) (
 		allRegions = append(allRegions, k)
 
 		// regions
-		m := &URLTest{
+		ms = append(ms, URLTest{
 			Type:      "urltest",
 			Tag:       k,
 			URL:       testURL,
 			Interval:  "1m",
 			Tolerance: 50,
 			Outbounds: item,
-		}
-		ms = append(ms, m)
+		})
 	}
 
 	// auto
-	var m interface{} = &URLTest{
+	ms = append(ms, URLTest{
 		Type:      "urltest",
 		Tag:       "auto",
 		URL:       testURL,
 		Interval:  "1m",
 		Tolerance: 50,
 		Outbounds: allItems,
-	}
-	ms = append(ms, m)
+	})
 
 	// select
-	m = &Selector{
-		Type:    "selector",
-		Tag:     "select",
-		Default: "auto",
-	}
-	items := []string{"auto"}
-	items = append(items, allRegions...)
+	items := append([]string{"auto"}, allRegions...)
 	items = append(items, allItems...)
-	m.(*Selector).Outbounds = items
-	ms = append(ms, m)
+	ms = append(ms, Selector{
+		Type:      "selector",
+		Tag:       "select",
+		Outbounds: items,
+		Default:   "auto",
+	})
 
-	m = &Selector{
-		Type:    "selector",
-		Tag:     "netflix",
-		Default: "select",
-	}
-	items = []string{"select"}
-	items = append(items, allItems...)
-	m.(*Selector).Outbounds = items
-	ms = append(ms, m)
+	var customGeositeItems []string
 
-	m = &Selector{
-		Type:    "selector",
-		Tag:     "spotify",
-		Default: "direct",
-	}
-	items = []string{"direct", "select"}
-	items = append(items, allItems...)
-	m.(*Selector).Outbounds = items
-	ms = append(ms, m)
+	// custom geosite selectors
+	ms = append(ms, Selector{
+		Type:      "selector",
+		Tag:       "spotify",
+		Outbounds: append([]string{"direct", "selelct"}, allItems...),
+		Default:   "direct",
+	})
+	customGeositeItems = append(customGeositeItems, "spotify")
 
-	m = &Direct{
+	ms = append(ms, Selector{
+		Type:      "selector",
+		Tag:       "netflix",
+		Outbounds: append([]string{"selelct"}, allItems...),
+		Default:   "select",
+	})
+	customGeositeItems = append(customGeositeItems, "netflix")
+
+	// needed
+	ms = append(ms, Direct{
 		Type: "direct",
 		Tag:  "direct",
-	}
-	ms = append(ms, m)
-
-	m = &Block{
+	})
+	ms = append(ms, Block{
 		Type: "block",
 		Tag:  "block",
-	}
-	ms = append(ms, m)
-
-	m = &DNS{
+	})
+	ms = append(ms, DNS{
 		Type: "dns",
 		Tag:  "dns-out",
+	})
+
+	return &CustomOutbounds{
+		Outbounds:    ms,
+		DNSHosts:     allHosts,
+		GeositeItems: customGeositeItems,
 	}
-	ms = append(ms, m)
-	return ms, allHosts
 }
 
 //go:embed tmpl.json
 var config []byte
 
+type DNSRule struct {
+	Domain  []string `json:"domain"`
+	Geosite string   `json:"geosite"`
+	Servers string   `json:"server"`
+}
+
+type Rule struct {
+	Geosite  []string `json:"geosite"`
+	Outbound string   `json:"outbound"`
+}
+
+type Route struct {
+	Rules               []interface{} `json:"rules"`
+	Final               string        `json:"final"`
+	AutoDetectInterface bool          `json:"auto_detect_interface"`
+	OverrideAndroidVPN  bool          `json:"override_android_vpn"`
+}
 type Config struct {
 	Log json.RawMessage `json:"log"`
 	DNS struct {
-		Servers  json.RawMessage          `json:"servers"`
-		Rules    []map[string]interface{} `json:"rules"`
-		Strategy string                   `json:"strategy"`
+		Servers  json.RawMessage `json:"servers"`
+		Rules    []interface{}   `json:"rules"`
+		Strategy string          `json:"strategy"`
 	} `json:"dns"`
 	Outbounds    interface{}     `json:"outbounds"`
 	Inbounds     json.RawMessage `json:"inbounds"`
-	Route        json.RawMessage `json:"route"`
+	Route        Route           `json:"route"`
 	Experimental json.RawMessage `json:"experimental"`
 }
 
-func generateConfig(outbounds []interface{}, allHosts []string, configPath string) error {
+func generateConfig(out *CustomOutbounds, configPath string) error {
 	var cfg Config
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
 	}
 
 	// subscribe hosts to dns direct
-	m := make(map[string]interface{})
-	m["domain"] = allHosts
-	m["geosite"] = "cn"
-	m["server"] = "local"
-	cfg.DNS.Rules = append(cfg.DNS.Rules, m)
+	cfg.DNS.Rules = append(cfg.DNS.Rules, &DNSRule{
+		Domain:  out.DNSHosts,
+		Geosite: "cn",
+		Servers: "local",
+	})
 
-	cfg.Outbounds = outbounds
+	// added custom geosite items
+	rules := make([]interface{}, 0, len(cfg.Route.Rules)+len(out.GeositeItems))
+	rules = append(rules, cfg.Route.Rules[:2]...)
+	for _, v := range out.GeositeItems {
+		rules = append(rules, Rule{
+			Geosite:  []string{v},
+			Outbound: v,
+		})
+	}
+	rules = append(rules, cfg.Route.Rules[2:]...)
+	cfg.Route.Rules = rules
+
+	// bind outbounds
+	cfg.Outbounds = out.Outbounds
 
 	b, err := json.Marshal(cfg)
 	if err != nil {
@@ -355,8 +387,8 @@ func main() {
 		panic(err)
 	}
 
-	ob, addrs := generateOutbounds(groupProxies(ps), *hiddenPassword)
-	if err = generateConfig(ob, addrs, *outFile); err != nil {
+	ob := generateOutbounds(groupProxies(ps), *hiddenPassword)
+	if err = generateConfig(ob, *outFile); err != nil {
 		panic(err)
 	}
 }
