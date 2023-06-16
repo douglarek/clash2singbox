@@ -6,8 +6,8 @@
   "dns": {
     "servers": [
       {
-        "tag": "proxy",
-        "address": "https://doh.pub/dns-query",
+        "tag": "cloudflare",
+        "address": "https://1.1.1.1/dns-query",
         "address_resolver": "local"
       },
       {
