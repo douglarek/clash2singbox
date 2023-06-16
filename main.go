@@ -25,6 +25,7 @@ var (
 	subscribe      = flag.String("subscribe", "", "clash subscribe url, like https://example.com/api/v1/client/subscribe?token=aaaa&flag=clash")
 	hiddenPassword = flag.Bool("nopass", false, "hidden password for sharing")
 	outFile        = flag.String("c", "config.json", "generated config file path")
+	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
 )
 
 const (
@@ -282,8 +283,10 @@ type DNSRule struct {
 }
 
 type Rule struct {
-	Geosite  []string `json:"geosite"`
-	Outbound string   `json:"outbound"`
+	Geosite      []string `json:"geosite,omitempty"`
+	Outbound     string   `json:"outbound"`
+	Domain       []string `json:"domain,omitempty"`
+	DomainSuffix []string `json:"domain_suffix,omitempty"`
 }
 
 type Route struct {
@@ -305,7 +308,7 @@ type Config struct {
 	Experimental json.RawMessage `json:"experimental"`
 }
 
-func generateConfig(out *CustomOutbounds, configPath string) error {
+func generateConfig(out *CustomOutbounds, privateDomains string, configPath string) error {
 	var cfg Config
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
@@ -326,6 +329,22 @@ func generateConfig(out *CustomOutbounds, configPath string) error {
 			Geosite:  []string{v},
 			Outbound: v,
 		})
+	}
+	// private domains
+	if privateDomains != "" {
+		r := Rule{}
+		ds := strings.Split(privateDomains, ",")
+		for _, v := range ds {
+			if strings.HasPrefix(v, ".") {
+				r.DomainSuffix = append(r.DomainSuffix, v)
+			} else {
+				r.Domain = append(r.Domain, v)
+			}
+		}
+		if len(r.Domain) > 0 || len(r.DomainSuffix) > 0 {
+			r.Outbound = "direct"
+			rules = append(rules, r)
+		}
 	}
 	rules = append(rules, cfg.Route.Rules[2:]...)
 	cfg.Route.Rules = rules
@@ -386,7 +405,7 @@ func main() {
 	}
 
 	ob := generateOutbounds(groupProxies(ps), *hiddenPassword)
-	if err = generateConfig(ob, *outFile); err != nil {
+	if err = generateConfig(ob, *private, *outFile); err != nil {
 		panic(err)
 	}
 }
