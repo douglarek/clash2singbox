@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -19,6 +20,17 @@ import (
 
 func init() {
 	http.DefaultClient.Timeout = 10 * time.Second
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func RandStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
 
 var (
@@ -26,6 +38,7 @@ var (
 	hiddenPassword = flag.Bool("nopass", false, "hidden password for sharing")
 	outFile        = flag.String("c", "config.json", "generated config file path")
 	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
+	clashAPISecret = flag.String("secret", RandStringRunes(8), "clash api secret")
 )
 
 const (
@@ -297,6 +310,13 @@ type Route struct {
 	AutoDetectInterface bool          `json:"auto_detect_interface"`
 	OverrideAndroidVPN  bool          `json:"override_android_vpn"`
 }
+
+type ClashAPI struct {
+	ExternalController string `json:"external_controller"`
+	StoreSelected      bool   `json:"store_selected"`
+	Secret             string `json:"secret"`
+}
+
 type Config struct {
 	Log json.RawMessage `json:"log"`
 	DNS struct {
@@ -307,10 +327,12 @@ type Config struct {
 	Outbounds    interface{}     `json:"outbounds"`
 	Inbounds     json.RawMessage `json:"inbounds"`
 	Route        Route           `json:"route"`
-	Experimental json.RawMessage `json:"experimental"`
+	Experimental struct {
+		ClashAPI ClashAPI `json:"clash_api"`
+	} `json:"experimental"`
 }
 
-func generateConfig(out *CustomOutbounds, privateDomains string, configPath string) error {
+func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, configPath string) error {
 	var cfg Config
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
@@ -350,6 +372,9 @@ func generateConfig(out *CustomOutbounds, privateDomains string, configPath stri
 	}
 	rules = append(rules, cfg.Route.Rules[2:]...)
 	cfg.Route.Rules = rules
+
+	// clash api Secret
+	cfg.Experimental.ClashAPI.Secret = clashAPISecret
 
 	// bind outbounds
 	cfg.Outbounds = out.Outbounds
@@ -396,7 +421,7 @@ func format(configPath string, content []byte) error {
 func main() {
 	flag.Parse()
 
-	if *subscribe == "" {
+	if *subscribe == "" || *clashAPISecret == "" {
 		flag.Usage()
 		return
 	}
@@ -407,7 +432,7 @@ func main() {
 	}
 
 	ob := generateOutbounds(groupProxies(ps), *hiddenPassword)
-	if err = generateConfig(ob, *private, *outFile); err != nil {
+	if err = generateConfig(ob, *private, *clashAPISecret, *outFile); err != nil {
 		panic(err)
 	}
 }
