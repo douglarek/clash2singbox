@@ -421,7 +421,7 @@ func format(configPath string, content []byte) error {
 func main() {
 	flag.Parse()
 
-	if *subscribe == "" || *clashAPISecret == "" {
+	if *subscribe == "" {
 		flag.Usage()
 		return
 	}

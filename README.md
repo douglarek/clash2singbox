@@ -12,6 +12,8 @@ Usage of ./clash2singbox:
         hidden password for sharing
   -private string
         private domain or domain_suffix list, split by comma
+  -secret string
+        clash api secret (default "aTxglNpU")
   -subscribe string
         clash subscribe url, like https://example.com/api/v1/client/subscribe?token=aaaa&flag=clash
 ```
