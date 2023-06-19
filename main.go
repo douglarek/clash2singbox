@@ -92,6 +92,8 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "tw"
 		} else if strings.Contains(p["name"], "英国") {
 			k = "uk"
+		} else if strings.Contains(p["name"], "法国") {
+			k = "fr"
 		}
 
 		if k == "" {
