@@ -80,6 +80,7 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	m := make(map[string][]map[string]string)
 	for _, p := range ps {
 		var k string
+		// 以下 emoji bannner 只是为了美观无任何政治隐含义
 		if strings.Contains(p["name"], "香港") {
 			k = "🇭🇰香港"
 		} else if strings.Contains(p["name"], "日本") {
