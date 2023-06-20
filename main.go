@@ -36,6 +36,7 @@ func RandStringRunes(n int) string {
 var (
 	subscribe      = flag.String("subscribe", "", "clash subscribe url, like https://example.com/api/v1/client/subscribe?token=aaaa&flag=clash")
 	hiddenPassword = flag.Bool("nopass", false, "hidden password for sharing")
+	hiddenBanner   = flag.Bool("nobanner", false, "hidden node emoji banner")
 	outFile        = flag.String("c", "config.json", "generated config file path")
 	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
 	clashAPISecret = flag.String("secret", RandStringRunes(8), "clash api secret")
@@ -76,27 +77,38 @@ func parseSubscribeProxies(url string) ([]map[string]string, error) {
 	return s.Proxies, nil
 }
 
+// 以下 emoji bannner 只是为了美观无任何政治隐含义
+var bannerM = map[string]string{
+	"香港":  "🇭🇰",
+	"日本":  "🇯🇵",
+	"美国":  "🇺🇸",
+	"新加坡": "🇸🇬",
+	"台湾":  "🇹🇼",
+	"英国":  "🇬🇧",
+	"法国":  "🇫🇷",
+	"冰岛":  "🇮🇸",
+}
+
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	m := make(map[string][]map[string]string)
 	for _, p := range ps {
 		var k string
-		// 以下 emoji bannner 只是为了美观无任何政治隐含义
 		if strings.Contains(p["name"], "香港") {
-			k = "🇭🇰香港"
+			k = "香港"
 		} else if strings.Contains(p["name"], "日本") {
-			k = "🇯🇵日本"
+			k = "日本"
 		} else if strings.Contains(p["name"], "美国") {
-			k = "🇺🇸美国"
+			k = "美国"
 		} else if strings.Contains(p["name"], "新加坡") {
-			k = "🇸🇬新加坡"
+			k = "新加坡"
 		} else if strings.Contains(p["name"], "台湾") {
-			k = "🇹🇼台湾"
+			k = "台湾"
 		} else if strings.Contains(p["name"], "英国") {
-			k = "🇬🇧英国"
+			k = "英国"
 		} else if strings.Contains(p["name"], "法国") {
-			k = "🇫🇷法国"
+			k = "法国"
 		} else if strings.Contains(p["name"], "冰岛") {
-			k = "🇮🇸冰岛"
+			k = "冰岛"
 		}
 
 		if k == "" {
@@ -167,7 +179,7 @@ type CustomOutbounds struct {
 	GeositeItems []string
 }
 
-func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) *CustomOutbounds {
+func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, hiddenBanner bool) *CustomOutbounds {
 	var ms []interface{}
 	var allItems []string
 	var allRegions []string
@@ -177,6 +189,9 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool) *
 		for i, p := range v {
 			var m interface{}
 			tag := fmt.Sprintf("%s-%02d", k, i+1)
+			if !hiddenBanner {
+				tag = fmt.Sprintf("%s%s", bannerM[k], tag)
+			}
 			port, err := strconv.Atoi(p["port"])
 			if err != nil {
 				panic(err)
@@ -436,7 +451,7 @@ func main() {
 		panic(err)
 	}
 
-	ob := generateOutbounds(groupProxies(ps), *hiddenPassword)
+	ob := generateOutbounds(groupProxies(ps), *hiddenPassword, *hiddenBanner)
 	if err = generateConfig(ob, *private, *clashAPISecret, *outFile); err != nil {
 		panic(err)
 	}
