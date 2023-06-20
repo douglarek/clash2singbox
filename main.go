@@ -87,6 +87,7 @@ var bannerM = map[string]string{
 	"英国":  "🇬🇧",
 	"法国":  "🇫🇷",
 	"冰岛":  "🇮🇸",
+	"土耳其": "🇹🇷",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -109,6 +110,8 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "法国"
 		} else if strings.Contains(p["name"], "冰岛") {
 			k = "冰岛"
+		} else if strings.Contains(p["name"], "土耳其") {
+			k = "土耳其"
 		}
 
 		if k == "" {
@@ -185,13 +188,13 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	var allRegions []string
 	var allHosts []string
 	for k, v := range gp {
+		if !hiddenBanner {
+			k = fmt.Sprintf("%s%s", bannerM[k], k)
+		}
 		var item []string
 		for i, p := range v {
 			var m interface{}
 			tag := fmt.Sprintf("%s-%02d", k, i+1)
-			if !hiddenBanner {
-				tag = fmt.Sprintf("%s%s", bannerM[k], tag)
-			}
 			port, err := strconv.Atoi(p["port"])
 			if err != nil {
 				panic(err)
