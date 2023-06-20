@@ -7,8 +7,7 @@
     "servers": [
       {
         "tag": "cloudflare",
-        "address": "https://1.1.1.1/dns-query",
-        "address_resolver": "local"
+        "address": "tls://1.1.1.1"
       },
       {
         "tag": "local",
