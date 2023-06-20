@@ -81,19 +81,21 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	for _, p := range ps {
 		var k string
 		if strings.Contains(p["name"], "香港") {
-			k = "hk"
+			k = "🇭🇰香港"
 		} else if strings.Contains(p["name"], "日本") {
-			k = "jp"
+			k = "🇯🇵日本"
 		} else if strings.Contains(p["name"], "美国") {
-			k = "us"
+			k = "🇺🇸美国"
 		} else if strings.Contains(p["name"], "新加坡") {
-			k = "sg"
+			k = "🇸🇬新加坡"
 		} else if strings.Contains(p["name"], "台湾") {
-			k = "tw"
+			k = "🇹🇼台湾"
 		} else if strings.Contains(p["name"], "英国") {
-			k = "uk"
+			k = "🇬🇧英国"
 		} else if strings.Contains(p["name"], "法国") {
-			k = "fr"
+			k = "🇫🇷法国"
+		} else if strings.Contains(p["name"], "冰岛") {
+			k = "🇮🇸冰岛"
 		}
 
 		if k == "" {
