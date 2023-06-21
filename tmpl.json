@@ -6,13 +6,13 @@
   "dns": {
     "servers": [
       {
-        "tag": "cloudflare",
+        "tag": "cf",
         "address": "tls://1.1.1.1"
       },
       {
         "tag": "local",
         "address": "223.5.5.5",
-        "detour": "direct"
+        "detour": "direct-out"
       },
       {
         "tag": "block",
@@ -86,11 +86,11 @@
       },
       {
         "geosite": "category-ads-all",
-        "outbound": "block"
+        "outbound": "block-out"
       },
       {
         "clash_mode": "direct",
-        "outbound": "direct"
+        "outbound": "direct-out"
       },
       {
         "domain": [
@@ -98,15 +98,18 @@
           "yacd.haishan.me",
           "yacd.metacubex.one"
         ],
-        "outbound": "direct"
+        "outbound": "direct-out"
       },
       {
-        "geosite": "cn",
+        "geosite": [
+	  "private",
+	  "cn"
+	],
         "geoip": [
           "private",
           "cn"
         ],
-        "outbound": "direct"
+        "outbound": "direct-out"
       }
     ],
     "final": "select",

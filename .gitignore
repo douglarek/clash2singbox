@@ -1,2 +1,3 @@
 *.json
 !tmpl.json
+!hp-tmpl.json

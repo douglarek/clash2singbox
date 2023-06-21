@@ -40,6 +40,7 @@ var (
 	outFile        = flag.String("c", "config.json", "generated config file path")
 	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
 	clashAPISecret = flag.String("secret", RandStringRunes(8), "clash api secret")
+	mode           = flag.String("mode", "general", "general or hp. general is for general purpose, hp is for Immortalwrt homeproxy")
 )
 
 const (
@@ -168,8 +169,9 @@ type Selector struct {
 }
 
 type Direct struct {
-	Type string `json:"type"`
-	Tag  string `json:"tag"`
+	Type        string `json:"type"`
+	Tag         string `json:"tag"`
+	RoutingMark int    `json:"routing_mark"`
 }
 
 type Block struct {
@@ -284,8 +286,8 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	ms = append(ms, Selector{
 		Type:      "selector",
 		Tag:       "spotify",
-		Outbounds: append([]string{"direct", "select"}, allItems...),
-		Default:   "direct",
+		Outbounds: append([]string{"direct-out", "select"}, allItems...),
+		Default:   "direct-out",
 	})
 	customGeositeItems = append(customGeositeItems, "spotify")
 	ms = append(ms, Selector{
@@ -298,12 +300,13 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 
 	// needed
 	ms = append(ms, Direct{
-		Type: "direct",
-		Tag:  "direct",
+		Type:        "direct",
+		Tag:         "direct-out",
+		RoutingMark: 100,
 	})
 	ms = append(ms, Block{
 		Type: "block",
-		Tag:  "block",
+		Tag:  "block-out",
 	})
 	ms = append(ms, DNS{
 		Type: "dns",
@@ -320,6 +323,9 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 //go:embed tmpl.json
 var config []byte
 
+//go:embed hp-tmpl.json
+var hpConfig []byte
+
 type DNSRule struct {
 	Domain  []string `json:"domain"`
 	Geosite string   `json:"geosite"`
@@ -334,16 +340,19 @@ type Rule struct {
 }
 
 type Route struct {
-	Rules               []interface{} `json:"rules"`
-	Final               string        `json:"final"`
-	AutoDetectInterface bool          `json:"auto_detect_interface"`
-	OverrideAndroidVPN  bool          `json:"override_android_vpn"`
+	Geoip               json.RawMessage `json:"geoip"`
+	Geosite             json.RawMessage `json:"geosite"`
+	Rules               []interface{}   `json:"rules"`
+	Final               string          `json:"final"`
+	AutoDetectInterface bool            `json:"auto_detect_interface"`
+	OverrideAndroidVPN  bool            `json:"override_android_vpn"`
 }
 
 type ClashAPI struct {
-	ExternalController string `json:"external_controller"`
-	StoreSelected      bool   `json:"store_selected"`
-	Secret             string `json:"secret"`
+	ExternalController string          `json:"external_controller"`
+	ExternalUI         json.RawMessage `json:"external_ui"`
+	StoreSelected      bool            `json:"store_selected"`
+	Secret             string          `json:"secret"`
 }
 
 type Config struct {
@@ -361,10 +370,16 @@ type Config struct {
 	} `json:"experimental"`
 }
 
-func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, configPath string) error {
+func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, mode string, configPath string) error {
 	var cfg Config
-	if err := json.Unmarshal(config, &cfg); err != nil {
-		return err
+	if mode == "hp" {
+		if err := json.Unmarshal(hpConfig, &cfg); err != nil {
+			return err
+		}
+	} else {
+		if err := json.Unmarshal(config, &cfg); err != nil {
+			return err
+		}
 	}
 
 	// subscribe hosts to dns direct
@@ -395,7 +410,7 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 			}
 		}
 		if len(r.Domain) > 0 || len(r.DomainSuffix) > 0 {
-			r.Outbound = "direct"
+			r.Outbound = "direct-out"
 			rules = append(rules, r)
 		}
 	}
@@ -461,7 +476,7 @@ func main() {
 	}
 
 	ob := generateOutbounds(groupProxies(ps), *hiddenPassword, *hiddenBanner)
-	if err = generateConfig(ob, *private, *clashAPISecret, *outFile); err != nil {
+	if err = generateConfig(ob, *private, *clashAPISecret, *mode, *outFile); err != nil {
 		panic(err)
 	}
 }
