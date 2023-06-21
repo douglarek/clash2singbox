@@ -46,7 +46,6 @@
       "inet4_address": "172.19.0.1/30",
       "inet6_address": "fdfe:dcba:9876::1/126",
       "auto_route": true,
-      "stack": "gvisor",
       "include_package": [
         "com.google.android.apps.youtube.music",
         "com.google.android.gms",
@@ -75,6 +74,7 @@
         "com.discord",
         "com.netflix.mediaclient"
       ],
+      "stack": "gvisor",
       "sniff": true
     }
   ],
@@ -102,9 +102,9 @@
       },
       {
         "geosite": [
-	  "private",
-	  "cn"
-	],
+          "private",
+          "cn"
+        ],
         "geoip": [
           "private",
           "cn"
@@ -123,3 +123,4 @@
     }
   }
 }
+
