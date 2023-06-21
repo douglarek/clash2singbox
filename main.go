@@ -40,7 +40,7 @@ var (
 	outFile        = flag.String("c", "config.json", "generated config file path")
 	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
 	clashAPISecret = flag.String("secret", RandStringRunes(8), "clash api secret")
-	mode           = flag.String("mode", "general", "general or hp. general is for general purpose, hp is for Immortalwrt homeproxy")
+	mode           = flag.String("mode", "default", "default or hp. default is for general purpose, hp is for Immortalwrt homeproxy")
 )
 
 const (
@@ -320,10 +320,10 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	}
 }
 
-//go:embed tmpl.json
+//go:embed static/default.json
 var config []byte
 
-//go:embed hp-tmpl.json
+//go:embed static/hp.json
 var hpConfig []byte
 
 type DNSRule struct {
