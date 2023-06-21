@@ -2,10 +2,18 @@
 
 A tool for converting Clash subscriptions to Sing-Box configurations.
 
+## Install
+
+```
+$ go install github.com/douglarek/clash2singbox@latest
+```
+
 ## Usage
 
 ```
-Usage of ./clash2singbox:
+$ clash2singbox --help
+
+Usage of clash2singbox:
   -c string
         generated config file path (default "config.json")
   -nobanner
