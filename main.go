@@ -89,6 +89,7 @@ var bannerM = map[string]string{
 	"冰岛":    "🇮🇸",
 	"土耳其":   "🇹🇷",
 	"斯洛文尼亚": "🇸🇮",
+	"哈萨克斯坦": "🇰🇿",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -115,6 +116,8 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "土耳其"
 		} else if strings.Contains(p["name"], "斯洛文尼亚") {
 			k = "斯洛文尼亚"
+		} else if strings.Contains(p["name"], "哈萨克斯坦") {
+			k = "哈萨克斯坦"
 		}
 
 		if k == "" {
