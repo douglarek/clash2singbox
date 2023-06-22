@@ -93,7 +93,7 @@
   "experimental": {
     "clash_api": {
       "external_controller": "0.0.0.0:9090",
-      "external_ui": "/etc/homeproxy/resources/ui",
+      "external_ui": "/var/run/homeproxy/ui",
       "store_selected": true
     }
   }
