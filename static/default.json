@@ -93,18 +93,6 @@
         "outbound": "block-out"
       },
       {
-        "clash_mode": "direct",
-        "outbound": "direct-out"
-      },
-      {
-        "domain": [
-          "clash.razord.top",
-          "yacd.haishan.me",
-          "yacd.metacubex.one"
-        ],
-        "outbound": "direct-out"
-      },
-      {
         "geosite": [
           "private",
           "cn"
