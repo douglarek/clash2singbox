@@ -17,7 +17,7 @@ Usage of clash2singbox:
   -c string
         generated config file path (default "config.json")
   -mode string
-        default or hp. default is for general purpose, hp is for Immortalwrt homeproxy (default "general")
+        default or hp. default is for general purpose, hp is for Immortalwrt homeproxy (default "default")
   -nobanner
         hidden node emoji banner
   -nopass

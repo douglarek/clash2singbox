@@ -31,6 +31,10 @@
           "yacd.haishan.me",
           "yacd.metacubex.one"
         ],
+        "domain_suffix": [
+          ".lan",
+          ".local"
+        ],
         "server": "local"
       },
       {
