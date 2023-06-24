@@ -169,9 +169,8 @@ type Selector struct {
 }
 
 type Direct struct {
-	Type        string `json:"type"`
-	Tag         string `json:"tag"`
-	RoutingMark int    `json:"routing_mark"`
+	Type string `json:"type"`
+	Tag  string `json:"tag"`
 }
 
 type Block struct {
@@ -300,9 +299,8 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 
 	// needed
 	ms = append(ms, Direct{
-		Type:        "direct",
-		Tag:         "direct-out",
-		RoutingMark: 100,
+		Type: "direct",
+		Tag:  "direct-out",
 	})
 	ms = append(ms, Block{
 		Type: "block",
