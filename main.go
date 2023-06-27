@@ -326,7 +326,6 @@ var hpConfig []byte
 
 type DNSRule struct {
 	Domain  []string `json:"domain"`
-	Geosite string   `json:"geosite"`
 	Servers string   `json:"server"`
 }
 
@@ -381,11 +380,10 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	}
 
 	// subscribe hosts to dns direct
-	cfg.DNS.Rules = append(cfg.DNS.Rules, &DNSRule{
+	cfg.DNS.Rules = append([]interface{}{DNSRule{
 		Domain:  out.DNSHosts,
-		Geosite: "cn",
 		Servers: "local",
-	})
+	}}, cfg.DNS.Rules...)
 
 	// added custom geosite items
 	rules := make([]interface{}, 0, len(cfg.Route.Rules)+len(out.GeositeItems))

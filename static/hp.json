@@ -8,8 +8,7 @@
     "servers": [
       {
         "tag": "cf",
-        "address": "tls://1.1.1.1",
-        "strategy": "ipv4_only"
+        "address": "tls://1.1.1.1"
       },
       {
         "tag": "local",
@@ -23,11 +22,23 @@
     ],
     "rules": [
       {
-        "clash_mode": "direct",
+        "geosite": "geolocation-!cn",
+        "server": "cf"
+      },
+      {
+        "geosite": [
+          "cn",
+          "private"
+        ],
+        "server": "local"
+      },
+      {
+        "outbound": "any",
         "server": "local"
       }
     ],
-    "final": "cf"
+    "final": "cf",
+    "strategy": "prefer_ipv4"
   },
   "inbounds": [
     {
@@ -73,10 +84,37 @@
         "outbound": "dns-out"
       },
       {
-        "geosite": [
-          "cn",
-          "private"
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "geosite": "geolocation-!cn"
+          },
+          {
+            "geoip": "cn",
+            "invert": true
+          }
         ],
+        "outbound": "select"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "geosite": "cn"
+          },
+          {
+            "geoip": "cn"
+          }
+        ],
+        "outbound": "direct-out"
+      },
+      {
+        "geosite": "private",
+        "outbound": "direct-out"
+      },
+      {
         "geoip": [
           "cn",
           "private"

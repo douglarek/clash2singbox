@@ -26,11 +26,6 @@
         "disable_cache": true
       },
       {
-        "domain": [
-          "clash.razord.top",
-          "yacd.haishan.me",
-          "yacd.metacubex.one"
-        ],
         "domain_suffix": [
           ".lan",
           ".local"
@@ -38,11 +33,22 @@
         "server": "local"
       },
       {
-        "clash_mode": "direct",
+        "geosite": "geolocation-!cn",
+        "server": "cf"
+      },
+      {
+        "geosite": [
+          "cn",
+          "private"
+        ],
+        "server": "local"
+      },
+      {
+        "outbound": "any",
         "server": "local"
       }
     ],
-    "strategy": "ipv4_only"
+    "strategy": "prefer_ipv4"
   },
   "inbounds": [
     {
@@ -93,13 +99,40 @@
         "outbound": "block-out"
       },
       {
-        "geosite": [
-          "private",
-          "cn"
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "geosite": "geolocation-!cn"
+          },
+          {
+            "geoip": "cn",
+            "invert": true
+          }
         ],
+        "outbound": "select"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "geosite": "cn"
+          },
+          {
+            "geoip": "cn"
+          }
+        ],
+        "outbound": "direct-out"
+      },
+      {
+        "geosite": "private",
+        "outbound": "direct-out"
+      },
+      {
         "geoip": [
-          "private",
-          "cn"
+          "cn",
+          "private"
         ],
         "outbound": "direct-out"
       }
