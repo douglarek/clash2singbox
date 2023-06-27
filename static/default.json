@@ -7,8 +7,7 @@
     "servers": [
       {
         "tag": "cf",
-        "address": "tls://1.1.1.1",
-        "strategy": "ipv4_only"
+        "address": "tls://1.1.1.1"
       },
       {
         "tag": "local",
@@ -42,7 +41,8 @@
         "clash_mode": "direct",
         "server": "local"
       }
-    ]
+    ],
+    "strategy": "ipv4_only"
   },
   "inbounds": [
     {
