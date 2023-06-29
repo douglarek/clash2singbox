@@ -11,8 +11,8 @@
         "detour": "select"
       },
       {
-        "tag": "local",
-        "address": "223.5.5.5",
+        "tag": "ali",
+        "address": "tcp://223.5.5.5",
         "detour": "direct-out"
       },
       {
@@ -31,7 +31,7 @@
           ".lan",
           ".local"
         ],
-        "server": "local"
+        "server": "ali"
       },
       {
         "geosite": "geolocation-!cn",
@@ -42,11 +42,11 @@
           "cn",
           "private"
         ],
-        "server": "local"
+        "server": "ali"
       },
       {
         "outbound": "any",
-        "server": "local"
+        "server": "ali"
       }
     ],
     "strategy": "ipv4_only"
