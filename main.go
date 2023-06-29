@@ -433,12 +433,6 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 			case *Direct:
 				vt.RoutingMark = 100
 				out.Outbounds[i] = vt
-			case *Shadowsocks:
-				vt.RoutingMark = 100
-				out.Outbounds[i] = vt
-			case *Vmess:
-				vt.RoutingMark = 100
-				out.Outbounds[i] = vt
 			}
 		}
 	}
