@@ -134,22 +134,24 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 }
 
 type Shadowsocks struct {
-	Type       string `json:"type"`
-	Tag        string `json:"tag"`
-	Server     string `json:"server"`
-	ServerPort int    `json:"server_port"`
-	Method     string `json:"method"`
-	Password   string `json:"password"`
+	Type        string `json:"type"`
+	Tag         string `json:"tag"`
+	Server      string `json:"server"`
+	ServerPort  int    `json:"server_port"`
+	Method      string `json:"method"`
+	Password    string `json:"password"`
+	RoutingMark int    `json:"routing_mark,omitempty"`
 }
 
 type Vmess struct {
-	Type       string `json:"type"`
-	Tag        string `json:"tag"`
-	Server     string `json:"server"`
-	ServerPort int    `json:"server_port"`
-	UUID       string `json:"uuid"`
-	AlterID    int    `json:"alter_id"`
-	Security   string `json:"security"`
+	Type        string `json:"type"`
+	Tag         string `json:"tag"`
+	Server      string `json:"server"`
+	ServerPort  int    `json:"server_port"`
+	UUID        string `json:"uuid"`
+	AlterID     int    `json:"alter_id"`
+	Security    string `json:"security"`
+	RoutingMark int    `json:"routing_mark,omitempty"`
 }
 
 type URLTest struct {
@@ -169,8 +171,9 @@ type Selector struct {
 }
 
 type Direct struct {
-	Type string `json:"type"`
-	Tag  string `json:"tag"`
+	Type        string `json:"type"`
+	Tag         string `json:"tag"`
+	RoutingMark int    `json:"routing_mark,omitempty"`
 }
 
 type Block struct {
@@ -250,7 +253,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 		allRegions = append(allRegions, k)
 
 		// regions
-		ms = append(ms, URLTest{
+		ms = append(ms, &URLTest{
 			Type:      "urltest",
 			Tag:       k,
 			URL:       testURL,
@@ -261,7 +264,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	}
 
 	// auto
-	ms = append(ms, URLTest{
+	ms = append(ms, &URLTest{
 		Type:      "urltest",
 		Tag:       "auto",
 		URL:       testURL,
@@ -273,7 +276,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	// select
 	items := append([]string{"auto"}, allRegions...)
 	items = append(items, allItems...)
-	ms = append(ms, Selector{
+	ms = append(ms, &Selector{
 		Type:      "selector",
 		Tag:       "select",
 		Outbounds: items,
@@ -282,14 +285,14 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 
 	// custom geosite selectors
 	var customGeositeItems []string
-	ms = append(ms, Selector{
+	ms = append(ms, &Selector{
 		Type:      "selector",
 		Tag:       "spotify",
 		Outbounds: append([]string{"direct-out", "select"}, allItems...),
 		Default:   "direct-out",
 	})
 	customGeositeItems = append(customGeositeItems, "spotify")
-	ms = append(ms, Selector{
+	ms = append(ms, &Selector{
 		Type:      "selector",
 		Tag:       "netflix",
 		Outbounds: append([]string{"select"}, allItems...),
@@ -298,15 +301,15 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	customGeositeItems = append(customGeositeItems, "netflix")
 
 	// needed
-	ms = append(ms, Direct{
+	ms = append(ms, &Direct{
 		Type: "direct",
 		Tag:  "direct-out",
 	})
-	ms = append(ms, Block{
+	ms = append(ms, &Block{
 		Type: "block",
 		Tag:  "block-out",
 	})
-	ms = append(ms, DNS{
+	ms = append(ms, &DNS{
 		Type: "dns",
 		Tag:  "dns-out",
 	})
@@ -380,23 +383,23 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	}
 
 	// subscribe hosts to dns direct
-	cfg.DNS.Rules = append([]interface{}{DNSRule{
+	cfg.DNS.Rules = append([]interface{}{&DNSRule{
 		Domain:  out.DNSHosts,
-		Servers: "local",
+		Servers: "ali",
 	}}, cfg.DNS.Rules...)
 
 	// added custom geosite items
 	rules := make([]interface{}, 0, len(cfg.Route.Rules)+len(out.GeositeItems))
 	rules = append(rules, cfg.Route.Rules[:2]...)
 	for _, v := range out.GeositeItems {
-		rules = append(rules, Rule{
+		rules = append(rules, &Rule{
 			Geosite:  []string{v},
 			Outbound: v,
 		})
 	}
 	// private domains
 	if privateDomains != "" {
-		r := Rule{}
+		r := &Rule{}
 		ds := strings.Split(privateDomains, ",")
 		for _, v := range ds {
 			if strings.HasPrefix(v, ".") {
@@ -410,6 +413,13 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 			rules = append(rules, r)
 		}
 	}
+
+	// nodes
+	rules = append(rules, &Rule{
+		Domain:   out.DNSHosts,
+		Outbound: "direct-out",
+	})
+
 	rules = append(rules, cfg.Route.Rules[2:]...)
 	cfg.Route.Rules = rules
 
@@ -417,6 +427,21 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	cfg.Experimental.ClashAPI.Secret = clashAPISecret
 
 	// bind outbounds
+	if mode == "hp" {
+		for i, v := range out.Outbounds {
+			switch vt := v.(type) {
+			case *Direct:
+				vt.RoutingMark = 100
+				out.Outbounds[i] = vt
+			case *Shadowsocks:
+				vt.RoutingMark = 100
+				out.Outbounds[i] = vt
+			case *Vmess:
+				vt.RoutingMark = 100
+				out.Outbounds[i] = vt
+			}
+		}
+	}
 	cfg.Outbounds = out.Outbounds
 
 	b, err := json.Marshal(cfg)

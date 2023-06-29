@@ -12,7 +12,7 @@
       },
       {
         "tag": "ali",
-        "address": "tcp://223.5.5.5",
+        "address": "223.5.5.5",
         "detour": "direct-out"
       },
       {
@@ -34,18 +34,10 @@
         "server": "ali"
       },
       {
-        "geosite": "geolocation-!cn",
-        "server": "cf"
-      },
-      {
         "geosite": [
           "cn",
           "private"
         ],
-        "server": "ali"
-      },
-      {
-        "outbound": "any",
         "server": "ali"
       }
     ],
@@ -100,34 +92,10 @@
         "outbound": "block-out"
       },
       {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "geosite": "geolocation-!cn"
-          },
-          {
-            "geoip": "cn",
-            "invert": true
-          }
+        "geosite": [
+          "cn",
+          "private"
         ],
-        "outbound": "select"
-      },
-      {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "geosite": "cn"
-          },
-          {
-            "geoip": "cn"
-          }
-        ],
-        "outbound": "direct-out"
-      },
-      {
-        "geosite": "private",
         "outbound": "direct-out"
       },
       {
