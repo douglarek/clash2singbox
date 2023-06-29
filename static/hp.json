@@ -8,7 +8,8 @@
     "servers": [
       {
         "tag": "cf",
-        "address": "tls://1.1.1.1"
+        "address": "tls://1.1.1.1",
+        "detour": "select"
       },
       {
         "tag": "local",
@@ -37,8 +38,7 @@
         "server": "local"
       }
     ],
-    "final": "cf",
-    "strategy": "prefer_ipv4"
+    "strategy": "prefer_ipv6"
   },
   "inbounds": [
     {
