@@ -339,13 +339,19 @@ type Rule struct {
 	DomainSuffix []string `json:"domain_suffix,omitempty"`
 }
 
+type Geo struct {
+	Path           string `json:"path,omitempty"`
+	DownloadURL    string `json:"download_url"`
+	DownloadDetour string `json:"download_detour"`
+}
+
 type Route struct {
-	Geoip               json.RawMessage `json:"geoip"`
-	Geosite             json.RawMessage `json:"geosite"`
-	Rules               []interface{}   `json:"rules"`
-	Final               string          `json:"final"`
-	AutoDetectInterface bool            `json:"auto_detect_interface"`
-	OverrideAndroidVPN  bool            `json:"override_android_vpn"`
+	Geoip               *Geo          `json:"geoip"`
+	Geosite             *Geo          `json:"geosite"`
+	Rules               []interface{} `json:"rules"`
+	Final               string        `json:"final"`
+	AutoDetectInterface bool          `json:"auto_detect_interface"`
+	OverrideAndroidVPN  bool          `json:"override_android_vpn"`
 }
 
 type ClashAPI struct {
@@ -370,6 +376,11 @@ type Config struct {
 	} `json:"experimental"`
 }
 
+const (
+	geoipDownloadURL   = "https://github.com/1715173329/sing-geoip/releases/latest/download/geoip.db"
+	geositeDownloadURL = "https://github.com/1715173329/sing-geosite/releases/latest/download/geosite.db"
+)
+
 func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, mode string, configPath string) error {
 	var cfg Config
 	if mode == "hp" {
@@ -379,6 +390,24 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	} else {
 		if err := json.Unmarshal(config, &cfg); err != nil {
 			return err
+		}
+	}
+
+	// geo
+	if cfg.Route.Geoip != nil {
+		cfg.Route.Geoip.DownloadURL = geoipDownloadURL
+	} else {
+		cfg.Route.Geoip = &Geo{
+			DownloadURL:    geoipDownloadURL,
+			DownloadDetour: "select",
+		}
+	}
+	if cfg.Route.Geosite != nil {
+		cfg.Route.Geosite.DownloadURL = geositeDownloadURL
+	} else {
+		cfg.Route.Geosite = &Geo{
+			DownloadURL:    geositeDownloadURL,
+			DownloadDetour: "select",
 		}
 	}
 
@@ -431,6 +460,12 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 		for i, v := range out.Outbounds {
 			switch vt := v.(type) {
 			case *Direct:
+				vt.RoutingMark = 100
+				out.Outbounds[i] = vt
+			case *Shadowsocks:
+				vt.RoutingMark = 100
+				out.Outbounds[i] = vt
+			case *Vmess:
 				vt.RoutingMark = 100
 				out.Outbounds[i] = vt
 			}
