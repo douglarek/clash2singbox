@@ -269,7 +269,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 		Tag:       "auto",
 		URL:       testURL,
 		Interval:  "1m",
-		Tolerance: 50,
+		Tolerance: 5000,
 		Outbounds: allItems,
 	})
 
