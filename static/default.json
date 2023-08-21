@@ -64,6 +64,12 @@
         "outbound": "block-out"
       },
       {
+          "protocol": [
+              "quic"
+          ],
+          "outbound": "block-out"
+      },
+      {
         "geosite": [
           "cn",
           "private"
