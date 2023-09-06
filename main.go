@@ -80,17 +80,23 @@ func parseSubscribeProxies(url string) ([]map[string]string, error) {
 
 // 以下 emoji bannner 只是为了美观无任何政治隐含义
 var bannerM = map[string]string{
-	"hk": "🇭🇰",
-	"jp": "🇯🇵",
-	"us": "🇺🇸",
-	"sg": "🇸🇬",
-	"tw": "🇹🇼",
-	"gb": "🇬🇧",
-	"fr": "🇫🇷",
-	"is": "🇮🇸",
-	"tr": "🇹🇷",
-	"si": "🇸🇮",
-	"kz": "🇰🇿",
+	"hk":  "🇭🇰",
+	"jp":  "🇯🇵",
+	"us":  "🇺🇸",
+	"sg":  "🇸🇬",
+	"tw":  "🇹🇼",
+	"gb":  "🇬🇧",
+	"fr":  "🇫🇷",
+	"is":  "🇮🇸",
+	"tr":  "🇹🇷",
+	"si":  "🇸🇮",
+	"kz":  "🇰🇿",
+	"ua":  "🇺🇦",
+	"kp":  "🇰🇵",
+	"aq":  "🇦🇶",
+	"mo":  "🇲🇴",
+	"mm":  "🇲🇲",
+	"arg": "🇦🇷",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -119,6 +125,18 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "si"
 		} else if strings.Contains(p["name"], "哈萨克斯坦") {
 			k = "kz"
+		} else if strings.Contains(p["name"], "乌克兰") {
+			k = "ua"
+		} else if strings.Contains(p["name"], "朝鲜") {
+			k = "kp"
+		} else if strings.Contains(p["name"], "南极") {
+			k = "aq"
+		} else if strings.Contains(p["name"], "澳门") {
+			k = "mo"
+		} else if strings.Contains(p["name"], "缅甸") {
+			k = "mm"
+		} else if strings.Contains(p["name"], "阿根廷") {
+			k = "arg"
 		}
 
 		if k == "" {
@@ -274,7 +292,12 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	})
 
 	// select
-	items := append([]string{"auto"}, allRegions...)
+	items := append([]string{"auto"})
+	for _, v := range allRegions {
+		if !strings.Contains(v, "kp") {
+			items = append(items, v)
+		}
+	}
 	items = append(items, allItems...)
 	ms = append(ms, &Selector{
 		Type:      "selector",
