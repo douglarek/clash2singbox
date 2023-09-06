@@ -328,8 +328,9 @@ var config []byte
 var hpConfig []byte
 
 type DNSRule struct {
-	Domain  []string `json:"domain"`
-	Servers string   `json:"server"`
+	Domain       []string `json:"domain"`
+	DomainSuffix []string `json:"domain_suffix"`
+	Servers      string   `json:"server"`
 }
 
 type Rule struct {
@@ -355,10 +356,11 @@ type Route struct {
 }
 
 type ClashAPI struct {
-	ExternalController string          `json:"external_controller"`
-	ExternalUI         json.RawMessage `json:"external_ui"`
-	StoreSelected      bool            `json:"store_selected"`
-	Secret             string          `json:"secret"`
+	ExternalController    string          `json:"external_controller"`
+	ExternalUI            json.RawMessage `json:"external_ui"`
+	ExternalUIDownloadURL string          `json:"external_ui_download_url"`
+	StoreSelected         bool            `json:"store_selected"`
+	Secret                string          `json:"secret"`
 }
 
 type Config struct {
@@ -440,6 +442,13 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 		if len(r.Domain) > 0 || len(r.DomainSuffix) > 0 {
 			r.Outbound = "direct-out"
 			rules = append(rules, r)
+
+			// dns rules
+			cfg.DNS.Rules = append([]interface{}{&DNSRule{
+				Domain:       r.Domain,
+				DomainSuffix: r.DomainSuffix,
+				Servers:      "ali",
+			}}, cfg.DNS.Rules...)
 		}
 	}
 
