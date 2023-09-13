@@ -97,6 +97,7 @@ var bannerM = map[string]string{
 	"mo":  "🇲🇴",
 	"mm":  "🇲🇲",
 	"arg": "🇦🇷",
+	"kr":  "🇰🇷",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -137,6 +138,8 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "mm"
 		} else if strings.Contains(p["name"], "阿根廷") {
 			k = "arg"
+		} else if strings.Contains(p["name"], "韩国") {
+			k = "kr"
 		}
 
 		if k == "" {
@@ -151,6 +154,10 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	return m
 }
 
+type DialField struct {
+	TCPMultiPath bool `json:"tcp_multi_path"`
+}
+
 type Shadowsocks struct {
 	Type        string `json:"type"`
 	Tag         string `json:"tag"`
@@ -159,6 +166,7 @@ type Shadowsocks struct {
 	Method      string `json:"method"`
 	Password    string `json:"password"`
 	RoutingMark int    `json:"routing_mark,omitempty"`
+	*DialField
 }
 
 type Vmess struct {
@@ -170,6 +178,7 @@ type Vmess struct {
 	AlterID     int    `json:"alter_id"`
 	Security    string `json:"security"`
 	RoutingMark int    `json:"routing_mark,omitempty"`
+	*DialField
 }
 
 type URLTest struct {
@@ -235,6 +244,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 					Server:     p["server"],
 					ServerPort: port,
 					Method:     p["cipher"],
+					DialField:  &DialField{TCPMultiPath: true},
 				}
 				if hiddenPassword {
 					m.(*Shadowsocks).Password = "******"
@@ -247,6 +257,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 					Tag:        tag,
 					Server:     p["server"],
 					ServerPort: port,
+					DialField:  &DialField{TCPMultiPath: true},
 				}
 				if hiddenPassword {
 					m.(*Vmess).UUID = "******"
