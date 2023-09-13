@@ -7,8 +7,7 @@
     "servers": [
       {
         "tag": "google",
-        "address": "tls://8.8.8.8",
-        "detour": "🚀 手动选择"
+        "address": "tls://8.8.8.8"
       },
       {
         "tag": "ali",

@@ -40,7 +40,6 @@ var (
 	outFile        = flag.String("c", "config.json", "generated config file path")
 	private        = flag.String("private", "", "private domain or domain_suffix list, split by comma")
 	clashAPISecret = flag.String("secret", RandStringRunes(8), "clash api secret")
-	mode           = flag.String("mode", "default", "default or hp. default is for general purpose, hp is for Immortalwrt homeproxy")
 )
 
 const (
@@ -364,9 +363,6 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 //go:embed static/default.json
 var config []byte
 
-//go:embed static/hp.json
-var hpConfig []byte
-
 type DNSRule struct {
 	Domain       []string `json:"domain"`
 	DomainSuffix []string `json:"domain_suffix"`
@@ -424,16 +420,10 @@ var geositeM = map[string]string{
 	"🎥 奈飞":   "netflix",
 }
 
-func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, mode string, configPath string) error {
+func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, configPath string) error {
 	var cfg Config
-	if mode == "hp" {
-		if err := json.Unmarshal(hpConfig, &cfg); err != nil {
-			return err
-		}
-	} else {
-		if err := json.Unmarshal(config, &cfg); err != nil {
-			return err
-		}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return err
 	}
 
 	// subscribe hosts to dns direct
@@ -487,22 +477,6 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	// clash api Secret
 	cfg.Experimental.ClashAPI.Secret = clashAPISecret
 
-	// bind outbounds
-	if mode == "hp" {
-		for i, v := range out.Outbounds {
-			switch vt := v.(type) {
-			case *Direct:
-				vt.RoutingMark = 100
-				out.Outbounds[i] = vt
-			case *Shadowsocks:
-				vt.RoutingMark = 100
-				out.Outbounds[i] = vt
-			case *Vmess:
-				vt.RoutingMark = 100
-				out.Outbounds[i] = vt
-			}
-		}
-	}
 	cfg.Outbounds = out.Outbounds
 
 	b, err := json.Marshal(cfg)
@@ -558,7 +532,7 @@ func main() {
 	}
 
 	ob := generateOutbounds(groupProxies(ps), *hiddenPassword, *hiddenBanner)
-	if err = generateConfig(ob, *private, *clashAPISecret, *mode, *outFile); err != nil {
+	if err = generateConfig(ob, *private, *clashAPISecret, *outFile); err != nil {
 		panic(err)
 	}
 }
