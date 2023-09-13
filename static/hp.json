@@ -56,14 +56,6 @@
     }
   ],
   "route": {
-    "geoip": {
-      "path": "/var/run/homeproxy/geoip.db",
-      "download_detour": "select"
-    },
-    "geosite": {
-      "path": "/var/run/homeproxy/geosite.db",
-      "download_detour": "select"
-    },
     "rules": [
       {
         "inbound": "dns-in",
@@ -88,7 +80,7 @@
         "outbound": "direct-out"
       }
     ],
-    "final": "select",
+    "final": "🚀 手动选择",
     "auto_detect_interface": true
   },
   "experimental": {

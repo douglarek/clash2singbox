@@ -8,7 +8,7 @@
       {
         "tag": "google",
         "address": "tls://8.8.8.8",
-        "detour": "select"
+        "detour": "🚀 手动选择"
       },
       {
         "tag": "ali",
@@ -81,7 +81,7 @@
         "outbound": "direct-out"
       }
     ],
-    "final": "select",
+    "final": "🚀 手动选择",
     "auto_detect_interface": true,
     "override_android_vpn": true
   },

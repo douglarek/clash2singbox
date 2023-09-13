@@ -78,26 +78,25 @@ func parseSubscribeProxies(url string) ([]map[string]string, error) {
 	return s.Proxies, nil
 }
 
-// 以下 emoji bannner 只是为了美观无任何政治隐含义
 var bannerM = map[string]string{
-	"hk":  "🇭🇰",
-	"jp":  "🇯🇵",
-	"us":  "🇺🇸",
-	"sg":  "🇸🇬",
-	"tw":  "🇹🇼",
-	"gb":  "🇬🇧",
-	"fr":  "🇫🇷",
-	"is":  "🇮🇸",
-	"tr":  "🇹🇷",
-	"si":  "🇸🇮",
-	"kz":  "🇰🇿",
-	"ua":  "🇺🇦",
-	"kp":  "🇰🇵",
-	"aq":  "🇦🇶",
-	"mo":  "🇲🇴",
-	"mm":  "🇲🇲",
-	"arg": "🇦🇷",
-	"kr":  "🇰🇷",
+	"香港":    "🇭🇰",
+	"日本":    "🇯🇵",
+	"美国":    "🇺🇸",
+	"新加坡":   "🇸🇬",
+	"台湾":    "🇨🇳",
+	"英国":    "🇬🇧",
+	"法国":    "🇫🇷",
+	"冰岛":    "🇮🇸",
+	"土耳其":   "🇹🇷",
+	"斯洛文尼亚": "🇸🇮",
+	"哈萨克斯坦": "🇰🇿",
+	"乌克兰":   "🇺🇦",
+	"朝鲜":    "🇰🇵",
+	"南极":    "🇦🇶",
+	"澳门":    "🇲🇴",
+	"缅甸":    "🇲🇲",
+	"阿根廷":   "🇦🇷",
+	"韩国":    "🇰🇷",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -105,41 +104,41 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 	for _, p := range ps {
 		var k string
 		if strings.Contains(p["name"], "香港") {
-			k = "hk"
+			k = "香港"
 		} else if strings.Contains(p["name"], "日本") {
-			k = "jp"
+			k = "日本"
 		} else if strings.Contains(p["name"], "美国") {
-			k = "us"
+			k = "美国"
 		} else if strings.Contains(p["name"], "新加坡") {
-			k = "sg"
+			k = "新加坡"
 		} else if strings.Contains(p["name"], "台湾") {
-			k = "tw"
+			k = "台湾"
 		} else if strings.Contains(p["name"], "英国") {
-			k = "gb"
+			k = "英国"
 		} else if strings.Contains(p["name"], "法国") {
-			k = "fr"
+			k = "法国"
 		} else if strings.Contains(p["name"], "冰岛") {
-			k = "is"
+			k = "冰岛"
 		} else if strings.Contains(p["name"], "土耳其") {
-			k = "tr"
+			k = "土耳其"
 		} else if strings.Contains(p["name"], "斯洛文尼亚") {
-			k = "si"
+			k = "斯洛文尼亚"
 		} else if strings.Contains(p["name"], "哈萨克斯坦") {
-			k = "kz"
+			k = "哈萨克斯坦"
 		} else if strings.Contains(p["name"], "乌克兰") {
-			k = "ua"
+			k = "乌克兰"
 		} else if strings.Contains(p["name"], "朝鲜") {
-			k = "kp"
+			k = "朝鲜"
 		} else if strings.Contains(p["name"], "南极") {
-			k = "aq"
+			k = "南极"
 		} else if strings.Contains(p["name"], "澳门") {
-			k = "mo"
+			k = "澳门"
 		} else if strings.Contains(p["name"], "缅甸") {
-			k = "mm"
+			k = "缅甸"
 		} else if strings.Contains(p["name"], "阿根廷") {
-			k = "arg"
+			k = "阿根廷"
 		} else if strings.Contains(p["name"], "韩国") {
-			k = "kr"
+			k = "韩国"
 		}
 
 		if k == "" {
@@ -226,12 +225,12 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	var allHosts []string
 	for k, v := range gp {
 		if !hiddenBanner {
-			k = fmt.Sprintf("%s%s", bannerM[k], k)
+			k = fmt.Sprintf("%s %s", bannerM[k], k)
 		}
 		var item []string
 		for i, p := range v {
 			var m interface{}
-			tag := fmt.Sprintf("%s-%02d", k, i+1)
+			tag := fmt.Sprintf("%s %02d", k, i+1)
 			port, err := strconv.Atoi(p["port"])
 			if err != nil {
 				panic(err)
@@ -295,7 +294,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	// auto
 	ms = append(ms, &URLTest{
 		Type:      "urltest",
-		Tag:       "auto",
+		Tag:       "♻ 自动选择",
 		URL:       testURL,
 		Interval:  "1m",
 		Tolerance: 5000,
@@ -303,7 +302,7 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	})
 
 	// select
-	items := append([]string{"auto"})
+	items := append([]string{"♻ 自动选择"})
 	for _, v := range allRegions {
 		if !strings.Contains(v, "kp") {
 			items = append(items, v)
@@ -312,27 +311,34 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 	items = append(items, allItems...)
 	ms = append(ms, &Selector{
 		Type:      "selector",
-		Tag:       "select",
+		Tag:       "🚀 手动选择",
 		Outbounds: items,
-		Default:   "auto",
+		Default:   "♻ 自动选择",
 	})
 
 	// custom geosite selectors
 	var customGeositeItems []string
 	ms = append(ms, &Selector{
 		Type:      "selector",
-		Tag:       "spotify",
-		Outbounds: append([]string{"direct-out", "select"}, allItems...),
-		Default:   "direct-out",
+		Tag:       "🤖 人工智能",
+		Outbounds: append([]string{"🚀 手动选择"}, allRegions...),
+		Default:   "🚀 手动选择",
 	})
-	customGeositeItems = append(customGeositeItems, "spotify")
+	customGeositeItems = append(customGeositeItems, "🤖 人工智能")
 	ms = append(ms, &Selector{
 		Type:      "selector",
-		Tag:       "netflix",
-		Outbounds: append([]string{"select"}, allItems...),
-		Default:   "select",
+		Tag:       "🎶 声破天",
+		Outbounds: append([]string{"direct-out", "🚀 手动选择"}, allItems...),
+		Default:   "direct-out",
 	})
-	customGeositeItems = append(customGeositeItems, "netflix")
+	customGeositeItems = append(customGeositeItems, "🎶 声破天")
+	ms = append(ms, &Selector{
+		Type:      "selector",
+		Tag:       "🎥 奈飞",
+		Outbounds: append([]string{"🚀 手动选择"}, allItems...),
+		Default:   "🚀 手动选择",
+	})
+	customGeositeItems = append(customGeositeItems, "🎥 奈飞")
 
 	// needed
 	ms = append(ms, &Direct{
@@ -412,10 +418,11 @@ type Config struct {
 	} `json:"experimental"`
 }
 
-const (
-	geoipDownloadURL   = "https://github.com/1715173329/sing-geoip/releases/latest/download/geoip.db"
-	geositeDownloadURL = "https://github.com/1715173329/sing-geosite/releases/latest/download/geosite.db"
-)
+var geositeM = map[string]string{
+	"🤖 人工智能": "openai",
+	"🎶 声破天":  "spotify",
+	"🎥 奈飞":   "netflix",
+}
 
 func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret string, mode string, configPath string) error {
 	var cfg Config
@@ -426,24 +433,6 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	} else {
 		if err := json.Unmarshal(config, &cfg); err != nil {
 			return err
-		}
-	}
-
-	// geo
-	if cfg.Route.Geoip != nil {
-		cfg.Route.Geoip.DownloadURL = geoipDownloadURL
-	} else {
-		cfg.Route.Geoip = &Geo{
-			DownloadURL:    geoipDownloadURL,
-			DownloadDetour: "select",
-		}
-	}
-	if cfg.Route.Geosite != nil {
-		cfg.Route.Geosite.DownloadURL = geositeDownloadURL
-	} else {
-		cfg.Route.Geosite = &Geo{
-			DownloadURL:    geositeDownloadURL,
-			DownloadDetour: "select",
 		}
 	}
 
@@ -458,7 +447,7 @@ func generateConfig(out *CustomOutbounds, privateDomains string, clashAPISecret 
 	rules = append(rules, cfg.Route.Rules[:2]...)
 	for _, v := range out.GeositeItems {
 		rules = append(rules, &Rule{
-			Geosite:  []string{v},
+			Geosite:  []string{geositeM[v]},
 			Outbound: v,
 		})
 	}
