@@ -30,6 +30,6 @@ Usage of clash2singbox:
 
 ## Dashboard
 
-Access [dashboard](https://yacd.metacubex.one/) from your browser:
+Access [dashboard](http://d.metacubex.one/) from your browser:
 
 ![Clash dashboard](https://i.imgur.com/o80w60C.png)
