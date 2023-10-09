@@ -96,6 +96,14 @@ var bannerM = map[string]string{
 	"缅甸":    "🇲🇲",
 	"阿根廷":   "🇦🇷",
 	"韩国":    "🇰🇷",
+	"沙特阿拉伯": "🇸🇦",
+	"阿拉伯联合酋长国": "🇦🇪",
+	"智利":    "🇨🇱",
+	"意大利":   "🇮🇹",
+	"澳大利亚":  "🇦🇺",
+	"巴西":    "🇧🇷",
+	"印度":    "🇮🇳",
+	"德国":    "🇩🇪",
 }
 
 func groupProxies(ps []map[string]string) map[string][]map[string]string {
@@ -138,6 +146,22 @@ func groupProxies(ps []map[string]string) map[string][]map[string]string {
 			k = "阿根廷"
 		} else if strings.Contains(p["name"], "韩国") {
 			k = "韩国"
+		} else if strings.Contains(p["name"], "沙特阿拉伯") {
+			k = "沙特阿拉伯"
+		} else if strings.Contains(p["name"], "阿拉伯联合酋长国") {
+			k = "阿拉伯联合酋长国"
+		} else if strings.Contains(p["name"], "智利") {
+			k = "智利"
+		} else if strings.Contains(p["name"], "意大利") {
+			k = "意大利"
+		} else if strings.Contains(p["name"], "澳大利亚") {
+			k = "澳大利亚"
+		} else if strings.Contains(p["name"], "巴西") {
+			k = "巴西"
+		} else if strings.Contains(p["name"], "印度") {
+			k = "印度"
+		} else if strings.Contains(p["name"], "德国") {
+			k = "德国"
 		}
 
 		if k == "" {
