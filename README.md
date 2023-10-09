@@ -16,8 +16,6 @@ $ clash2singbox --help
 Usage of clash2singbox:
   -c string
         generated config file path (default "config.json")
-  -mode string
-        default or hp. default is for general purpose, hp is for Immortalwrt homeproxy (default "default")
   -nobanner
         hidden node emoji banner
   -nopass
@@ -25,7 +23,7 @@ Usage of clash2singbox:
   -private string
         private domain or domain_suffix list, split by comma
   -secret string
-        clash api secret (default "dZZBlNUD")
+        clash api secret (default "gHkebmRq")
   -subscribe string
         clash subscribe url, like https://example.com/api/v1/client/subscribe?token=aaaa&flag=clash
 ```
@@ -34,4 +32,4 @@ Usage of clash2singbox:
 
 Access [dashboard](https://yacd.metacubex.one/) from your browser:
 
-![Clash dashboard](https://github.com/douglarek/clash2singbox/raw/main/static/dashboard.png)
+![Clash dashboard](https://i.imgur.com/o80w60C.png)
