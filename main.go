@@ -320,7 +320,6 @@ func generateOutbounds(gp map[string][]map[string]string, hiddenPassword bool, h
 		Tag:       "♻ 自动选择",
 		URL:       testURL,
 		Interval:  "1m",
-		Tolerance: 5000,
 		Outbounds: allItems,
 	})
 
